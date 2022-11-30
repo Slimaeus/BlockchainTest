@@ -4,21 +4,27 @@ using System.Text;
 
 namespace Blockchain.Lib
 {
-    public class Block
+    public class Block<T> where T : class
     {
         public string Hash { get; set; }
-        [DefaultValue("0")]
         public string PreviousHash { get; set; }
-        public Product Data { get; set; }
+        public T Data { get; set; }
         public long TimeStamp { get; set; }
         //private int nonce = 0;
         // Block Constructor
-        public Block(Product data, string previousHash, long timeStamp)
+        public Block(T data, string previousHash, long timeStamp)
         {
             Data = data;
             PreviousHash = previousHash;
             TimeStamp = timeStamp;
             Hash = CalculateHash();
+        }
+        public static long GetTime(DateTime date)
+        {
+            var st = new DateTime(1970, 1, 1);
+            TimeSpan t = (date.ToUniversalTime() - st);
+            long retval = (long)(t.TotalMilliseconds + 0.5);
+            return retval;
         }
         public static long GetTime()
         {
@@ -27,15 +33,23 @@ namespace Blockchain.Lib
             long retval = (long)(t.TotalMilliseconds + 0.5);
             return retval;
         }
-        public String CalculateHash()
+        public string CalculateHash()
         {
             var sha256 = new HashSha256();
             var calculatedhash = sha256.Hash(
                     PreviousHash +
                     TimeStamp.ToString() +
                     //nonce.ToString() +
-                    Data);
+                    Data.ToString());
             return calculatedhash;
+        }
+        public bool IsGenesisBlock()
+        {
+            return PreviousHash == "0";
+        }
+        public bool IsHashCorrect(string hash)
+        {
+            return Hash == hash;
         }
         public void MineBlock(int difficulty)
         {
